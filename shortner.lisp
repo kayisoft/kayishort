@@ -41,10 +41,10 @@
       environment
     (unless (authorized-p headers)
       (return-from post-urls-handler '(401 nil ("Unauthorized"))))
-    (when (and (or (null content-length) (not (> content-length 0)))
-               (not (string-equal content-type "application/json")))
+    (when (or (null content-length)
+              (not (> content-length 0))
+              (not (string-equal content-type "application/json")))
       (return-from post-urls-handler `(422 nil ("Invalid Input Value"))))
-    
     (let* ((body (http-body:parse content-type content-length raw-body))
            (original-url (cdr (assoc "originalUrl" body :test #'string=)))
            (short-url
