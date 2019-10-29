@@ -5,7 +5,7 @@
 (defun database-connection ()
   (dbi:connect-cached :sqlite3 :database-name *database-path*))
 
-(defun migrate-latest ()
+(defun database-migrate-latest ()
   "Runs all current migrations in order.
 
 WARNING: we don't track what migrations are run. We just run them all

@@ -3,8 +3,23 @@
 (in-package #:net.kayisoft.kayishort)
 
 (defparameter *api-access-password*
-  "IU89SyvaHF++1czA8ZBzIxhqQbpa2CyO/bk=" ;CHANGE ME
+  (or (uiop:getenv "KAYISHORT_API_PASSWORD")
+      "IU89SyvaHF++1czA8ZBzIxhqQbpa2CyO/bk=")
   "Password for API authentication.")
 
-(defparameter *database-path* "./data/store.db"
+(defparameter *server-port*
+  (parse-integer (or (uiop:getenv "KAYISHORT_SERVER_PORT") "80") :junk-allowed t)
+  "Port on which the server will listen.")
+
+(defparameter *database-path*
+  (or (uiop:getenv "KAYISHORT_DATABASE_PATH") "./data/store.db")
   "The path for the sqlite3 database.")
+
+(defun refresh-config-from-current-env ()
+  "Loads the latest state of configuration environmental variables"
+  (let ((api-access-password (uiop:getenv "KAYISHORT_API_PASSWORD"))
+        (server-port (uiop:getenv "KAYISHORT_SERVER_PORT"))
+        (database-path (uiop:getenv "KAYISHORT_DATABASE_PATH")))
+    (when api-access-password (setf *api-access-password* api-access-password))
+    (when server-port (setf *server-port* (parse-integer server-port :junk-allowed t)))
+    (when database-path (setf *database-path* database-path))))

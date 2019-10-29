@@ -8,19 +8,36 @@
   '((:method :GET :path "^/urls/(.{12})$" :handler get-urls-handler)
     (:method :POST :path "^/urls/?$" :handler post-urls-handler)))
 
-(defun start ()
-  (setf *server* (clack:clackup (lambda (env) (funcall #'dispatcher env)))))
+(defun main ()
+  (refresh-config-from-current-env)
+  (start-server)
+  (handler-case (sb-thread:join-thread
+                 (find-if
+                  (lambda (thread)
+                    (search "hunchentoot" (sb-thread:thread-name thread)))
+                  (sb-thread:list-all-threads)))
+    ;; Catch a user's C-c
+    (sb-sys:interactive-interrupt ()
+      (progn
+        (format *error-output* "~%Aborting.~&")
+        (stop-server) (uiop:quit)))
+    (error (c) (format t "Unknown error occured:~&~a~&" c))))
 
-(defun stop () (clack:stop *server*) (setf *server* nil))
+
+(defun start-server ()
+  (database-migrate-latest)
+  (setf *server* (clack:clackup (lambda (env) (funcall #'dispatcher env))
+                                :address "0.0.0.0"
+                                :port *server-port*)))
+
+(defun stop-server () (clack:stop *server*) (setf *server* nil))
 
 (defun dispatcher (environment)
   (handler-case
       (let* ((api (find-matching-api environment))
              (response (when api (funcall (getf api :handler) environment))))
         (if response response `(404 nil ("Not Found"))))
-    (error (c)
-      (verbose:error :INTERNAL-SERVER-ERRORS c)
-      `(500 nil ("Internal Server Error")))))
+    (error (c) (print c) `(500 nil ("Internal Server Error")))))
 
 (defun find-matching-api (environment)
   (find-if (lambda (handler)

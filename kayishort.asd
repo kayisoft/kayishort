@@ -10,7 +10,6 @@
   :serial t
   :depends-on (:cl-dbi                  ;sqlite db access
                :sxql                    ;sql query generator
-               :verbose                 ;logging framework
                :ironclad                ;crypto lib for secure rng
                :clack                   ;web server framework
                :cl-ppcre                ;regex library
@@ -23,10 +22,14 @@
                (:file "utils")          ;various helper utils
                (:file "migrations")     ;database migrations
                (:file "data")           ;database access
-               (:file "shortner")       ;main application logic
-               ))
+               (:file "kayishort")      ;main application logic
+               )
+  :build-operation "program-op"
+  :build-pathname "./dist/kayishort"
+  :entry-point "kayishort:main")
 
-;; (loop for dependecy in
-;;      '(:sxql :verbose :ironclad :clack :cl-ppcre
-;;        :http-body :cl-json :cl-dbi)
-;;      do (ql:quickload dependecy))
+;;; Allows compression on sbcl
+#+sb-core-compression
+(defmethod asdf:perform ((operation asdf:image-op) (component asdf:system))
+  (uiop:dump-image (asdf:output-file operation component)
+                   :executable t :compression 9))
