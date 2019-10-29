@@ -30,6 +30,24 @@ To load the system for interactive development:
 4. Hack away...
 5. Run `(stop-server)` to stop the server.
 
+## Docker
+To build the docker image, run the following command in the project's
+directory (change the name and tag if you want):
+
+```
+docker build . --tag kayishort:0.1
+```
+
+To run a container of this image, use the following command. Replace
+any values appropriately, and see the next section for other env-vars
+you can use:
+
+```
+docker run -p "8000:80" \
+           -e KAYISHORT_API_PASSWORD=RfIkcLRmnyGkBN/6mujRhtxhL5r9azdVnuk= \
+           -v "/home/yourhome/kayishort-data/:/app/data/" --rm -it kayishort:0.1
+```
+
 ## Environmental Variables
 
 ### `KAYISHORT_API_PASSWORD`
@@ -73,8 +91,7 @@ follow the redirect to that original page.
 * Currently does not support non-ascii URLs. (i.e. URLs containing
 symbols or Chinese or Arabic characters, etc.)
 
-* Only supports the `SBCL` Common-Lisp implementation.
+* Only supports the `SBCL` Common-Lisp implementation at the moment.
 
 ## License
 Unlicensed
-
