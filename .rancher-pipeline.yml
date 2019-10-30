@@ -1,0 +1,16 @@
+stages:
+- name: Build and Push Image
+  steps:
+  - publishImageConfig:
+      dockerfilePath: ./Dockerfile
+      buildContext: .
+      tag: kayisoft/kayishort:${CICD_GIT_COMMIT}
+      registry: 127.0.0.1:34776
+timeout: 60
+notification:
+  recipients:
+  - recipient: '#build-status'
+    notifier: c-zjzqt:n-kppm5
+  condition:
+  - Success
+  - Failed
