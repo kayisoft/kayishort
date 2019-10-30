@@ -44,15 +44,15 @@ you can use:
 
 ```
 docker run -p "8000:80" \
-           -e KAYISHORT_API_PASSWORD=RfIkcLRmnyGkBN/6mujRhtxhL5r9azdVnuk= \
+           -e KAYISHORT_API_TOKEN=RfIkcLRmnyGkBN/6mujRhtxhL5r9azdVnuk= \
            -v "/home/yourhome/kayishort-data/:/app/data/" --rm -it kayishort:0.1
 ```
 
 ## Environmental Variables
 
-### `KAYISHORT_API_PASSWORD`
-    API password. Clients that want to create new short urls must send
-    the same password in their `Authorization` header.
+### `KAYISHORT_API_TOKEN`
+    API access token. Clients that want to create new short urls must
+    send the same token in their `Authorization` header.
 
 ### `KAYISHORT_SERVER_PORT`
     Server listening port. `80` by default.
@@ -69,7 +69,7 @@ To create a new short URL. The API communicates using the
 `Content-Type: application/json`. 
 
 This API endpoint requires Authorization. To authorize, you must set
-the `Authorization` header to `Bearer {{KAYISHORT_API_PASSWORD}}`.
+the `Authorization` header to `Bearer {{KAYISHORT_API_TOKEN}}`.
 
 The URL you want to shorten should be sent in the POST body as a
 string value of the property `originalUrl`. For example:

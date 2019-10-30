@@ -84,4 +84,4 @@
 
 (defun authorized-p (headers)
   (string= (gethash "authorization" headers)
-           (concatenate 'string "Bearer " *api-access-password*)))
+           (concatenate 'string "Bearer " *api-access-token*)))

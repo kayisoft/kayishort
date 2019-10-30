@@ -2,8 +2,8 @@
 
 (in-package #:net.kayisoft.kayishort)
 
-(defparameter *api-access-password*
-  (or (uiop:getenv "KAYISHORT_API_PASSWORD")
+(defparameter *api-access-token*
+  (or (uiop:getenv "KAYISHORT_API_TOKEN")
       "IU89SyvaHF++1czA8ZBzIxhqQbpa2CyO/bk=")
   "Password for API authentication.")
 
@@ -17,9 +17,9 @@
 
 (defun refresh-config-from-current-env ()
   "Loads the latest state of configuration environmental variables"
-  (let ((api-access-password (uiop:getenv "KAYISHORT_API_PASSWORD"))
+  (let ((api-access-token (uiop:getenv "KAYISHORT_API_TOKEN"))
         (server-port (uiop:getenv "KAYISHORT_SERVER_PORT"))
         (database-path (uiop:getenv "KAYISHORT_DATABASE_PATH")))
-    (when api-access-password (setf *api-access-password* api-access-password))
+    (when api-access-token (setf *api-access-token* api-access-token))
     (when server-port (setf *server-port* (parse-integer server-port :junk-allowed t)))
     (when database-path (setf *database-path* database-path))))
