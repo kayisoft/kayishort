@@ -9,7 +9,7 @@ A simple SQLite-based URL shortner.
 3. Install quicklisp: https://www.quicklisp.org/beta/ and ensure it
    gets loaded in your `.sbclrc`.
 
-## Build
+## Build & Run
 To build an executable binary:
 
 1. In the project's directory, run: `sbcl --load "build.lisp"`. This
