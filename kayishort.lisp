@@ -70,8 +70,9 @@
       (when (or (null original-url) (not (valid-url-p original-url)))
         (return-from post-urls-handler `(422 nil ("Invalid Input Value"))))
       (return-from post-urls-handler
-        `(201 nil (,(cl-json:encode-json-plist-to-string
-                     `(:short-url ,(format nil "~A" short-url)))))))))
+        `(201 (:content-type "application/json;charset=utf-8")
+              (,(cl-json:encode-json-plist-to-string
+                 `(:short-url ,(format nil "~A" short-url)))))))))
 
 (defun register-short-url (url)
   (let ((generated-unique-id
