@@ -3,7 +3,7 @@
 (in-package #:net.kayisoft.kayishort)
 
 (defvar *url-id-characters*
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._"
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
   "Sequence of characters to draw from when generating unique path IDs.
 
 We kept off characters that require URL encoding. This pool is large
