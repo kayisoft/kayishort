@@ -4,5 +4,4 @@
 
 (push *default-pathname-defaults* ql:*local-project-directories*)
 (load "kayishort.asd")
-(loop for package in (asdf:system-depends-on (asdf:find-system :kayishort))
-   do (ql:quickload package))
+(ql:quickload (asdf:system-depends-on (asdf:find-system :kayishort)))
