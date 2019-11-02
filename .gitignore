@@ -1,5 +1,6 @@
-data/
+data
 system-index.txt
+dist
 
 # Logs
 logs
