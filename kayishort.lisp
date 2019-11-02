@@ -57,14 +57,13 @@
       environment
     (unless (authorized-p headers)
       (return-from post-urls-handler '(401 nil ("Unauthorized"))))
-    (when (or (null content-length)
-              (not (> content-length 0))
-              (not (cl-ppcre:scan "application/json" content-type)))
-      (return-from post-urls-handler `(422 nil ("Invalid Input Value"))))
-    (let* ((body (http-body:parse content-type content-length raw-body))
+    (let* ((body (handler-case
+                     (http-body:parse content-type content-length raw-body)
+                   (error () (return-from post-urls-handler
+                               `(400 nil ("Bad Request Body"))))))
            (original-url (cdr (assoc "originalUrl" body :test #'string=))))
       (when (or (null original-url) (not (valid-url-p original-url)))
-        (return-from post-urls-handler `(422 nil ("Invalid Input Value"))))
+        (return-from post-urls-handler `(422 nil ("Invalid Original URL"))))
       (return-from post-urls-handler
         `(201 (:content-type "application/json;charset=utf-8")
               (,(cl-json:encode-json-plist-to-string
