@@ -23,7 +23,6 @@
         (stop-server) (uiop:quit)))
     (error (c) (format t "Unknown error occured:~&~a~&" c))))
 
-
 (defun start-server ()
   (database-migrate-latest)
   (setf *server* (clack:clackup (lambda (env) (funcall #'dispatcher env))
@@ -63,16 +62,15 @@
               (not (cl-ppcre:scan "application/json" content-type)))
       (return-from post-urls-handler `(422 nil ("Invalid Input Value"))))
     (let* ((body (http-body:parse content-type content-length raw-body))
-           (original-url (cdr (assoc "originalUrl" body :test #'string=)))
-           (short-url
-            (concatenate 'string (gethash "host" headers)
-                         "/urls/" (register-short-url original-url))))
+           (original-url (cdr (assoc "originalUrl" body :test #'string=))))
       (when (or (null original-url) (not (valid-url-p original-url)))
         (return-from post-urls-handler `(422 nil ("Invalid Input Value"))))
       (return-from post-urls-handler
         `(201 (:content-type "application/json;charset=utf-8")
               (,(cl-json:encode-json-plist-to-string
-                 `(:short-url ,(format nil "~A" short-url)))))))))
+                 `(:short-url ,(concatenate
+                                'string (gethash "host" headers) "/urls/"
+                                (register-short-url original-url))))))))))
 
 (defun register-short-url (url)
   (let ((generated-unique-id
