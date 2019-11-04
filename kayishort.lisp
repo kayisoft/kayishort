@@ -11,17 +11,25 @@
 (defun main ()
   (refresh-config-from-current-env)
   (start-server)
-  (handler-case (sb-thread:join-thread
-                 (find-if
-                  (lambda (thread)
-                    (search "hunchentoot" (sb-thread:thread-name thread)))
-                  (sb-thread:list-all-threads)))
+  #+(or sbcl ccl clisp ecl allegro)
+  (handler-case (join-server-thread)
     ;; Catch a user's C-c
-    (sb-sys:interactive-interrupt ()
-      (progn
-        (format *error-output* "~%Aborting.~&")
-        (stop-server) (uiop:quit)))
-    (error (c) (format t "Unknown error occured:~&~a~&" c))))
+    (#+sbcl sb-sys:interactive-interrupt
+      #+ccl  ccl:interrupt-signal-condition
+      #+clisp system::simple-interrupt-condition
+      #+ecl ext:interactive-interrupt
+      #+allegro excl:interrupt-signal
+      ()
+      (progn (format *error-output* "~%Aborting.~&")
+             (stop-server) (uiop:quit)))
+    (error (c) (format t "Unknown error occured:~&~a~&" c)))
+  #-(or sbcl ccl clisp ecl allegro) (join-server-thread))
+
+(defun join-server-thread ()
+  (bt:join-thread
+   (find-if (lambda (thread)
+              (search "hunchentoot" (bt:thread-name thread)))
+            (bt:all-threads))))
 
 (defun start-server ()
   (database-migrate-latest)

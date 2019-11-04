@@ -8,7 +8,8 @@
   :description "A simple URL shortner and resolving them later."
   :homepage "https://kayisoft.net/"
   :serial t
-  :depends-on (:cl-dbi                  ;sqlite db access
+  :depends-on (:bordeaux-threads        ;portable threading lib
+               :cl-dbi                  ;sqlite db access
                :sxql                    ;sql query generator
                :ironclad                ;crypto lib for secure rng
                :clack                   ;web server framework
