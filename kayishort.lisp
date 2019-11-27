@@ -57,7 +57,9 @@
 (defun get-urls-handler (environment)
   (let* ((id (car (last (cl-ppcre:split "/urls/" (getf environment :path-info)))))
          (redirect-url (get-url-by-id id)))
-    (when redirect-url `(301 (:location ,redirect-url) ("")))))
+    (when redirect-url
+      (increment-url-visit-count id)
+      `(301 (:location ,redirect-url) ("")))))
 
 (defun post-urls-handler (environment)
   (destructuring-bind (&key headers content-type content-length

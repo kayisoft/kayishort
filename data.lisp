@@ -2,30 +2,73 @@
 
 (in-package #:net.kayisoft.kayishort)
 
-(defun database-connection ()
-  (dbi:connect-cached :sqlite3 :database-name *database-path*))
-
-(defun database-migrate-latest ()
-  "Runs all current migrations in order.
-
-WARNING: we don't track what migrations are run. We just run them all
-unconditionally for now."
-  (ensure-directories-exist *database-path*)
-  (loop for migration in *database-migrations*
-     do (dbi:do-sql (database-connection)
-          (getf migration :up))))
-
 (defun get-all-url-records ()
-  (dbi:fetch-all
-   (dbi:execute (dbi:prepare (database-connection) "SELECT * FROM urls"))))
+  (exec-db-query (sxql:select :* (sxql:from :urls))))
 
 (defun insert-url (id url)
-  (multiple-value-bind (query params)
-      (sxql:yield (sxql:insert-into :urls (sxql:set= :id id :url url)))
-    (dbi:execute (dbi:prepare (database-connection) query)
-                 (nth 0 params) (nth 1 params))))
+  (exec-db-query (sxql:insert-into :urls (sxql:set= :id id :url url))))
 
 (defun get-url-record-by-id (id)
-  (multiple-value-bind (query params)
-      (sxql:yield (sxql:select (:id :url) (sxql:from :urls) (sxql:where (:= :id id))))
-    (dbi:fetch (dbi:execute (dbi:prepare (database-connection) query) (car params)))))
+  (car (exec-db-query (sxql:select (:id :url) (sxql:from :urls)
+                                   (sxql:where (:= :id id))))))
+
+(defun increment-url-visit-count (id)
+  (exec-db-query (sxql:update :urls
+                   (sxql:set= :visits (:+ :visits 1))
+                   (sxql:where (:= :id id)))))
+
+;;; data utils:
+
+(defun database-connection ()
+  "Returns a database connection. It uses cached connections if they
+are available."
+  (dbi:connect-cached :sqlite3 :database-name *database-path*))
+
+(defun exec-db-raw-query (query &optional params)
+  "Execute a raw SQL query. Optionally accepts a list of SQL parameter
+bindings to bind in the query."
+  (dbi:fetch-all
+   (apply #'dbi:execute
+          (append (list (dbi:prepare (database-connection) query)) params))))
+
+(defun exec-db-query (lispy-query)
+  "Execute an SXQL query. SXQL is a lispy syntax for SQL."
+  (multiple-value-bind (query params) (sxql:yield lispy-query)
+    (exec-db-raw-query query params)))
+
+(defun get-db-version ()
+  "Gets the current migration version, which is stored in the PRAGMA
+`user_version`."
+  (cadar (exec-db-query (sxql:pragma "user_version"))))
+
+(defun set-db-version (version)
+  "Sets the PRAGMA `user_version` in the SQLite3 database. This is
+used to track the current applied migration version."
+  (exec-db-query (sxql:pragma "user_version" version)))
+
+(defun get-migration-by-id (id)
+  "Get a migration definition by its ID from the global migration
+definitions list."
+  (find-if (lambda (migration-id) (equal migration-id id))
+           *database-migrations*
+           :key (lambda (migration) (getf migration :id))))
+
+(defun get-wanted-migration-version ()
+  "Find the maximum migration ID in the global migration
+definitions. Migration IDs are sequential numbers."
+  (apply #'max (mapcar (lambda (migration) (getf migration :id))
+                       *database-migrations*)))
+
+(defun database-migrate-latest ()
+  "Migrate the database to the latest migration version. It only
+executes migrations that were not executed before. Also, it creates
+the database automatically if it does not already exist."
+  (ensure-directories-exist *database-path*)
+  (let ((current-database-version (get-db-version))
+        (wanted-database-version (get-wanted-migration-version)))
+    (when (< current-database-version wanted-database-version)
+      (loop for migration-id
+         from (1+ current-database-version) to wanted-database-version
+         do (exec-db-raw-query
+             (getf (get-migration-by-id migration-id) :up))
+           (set-db-version migration-id)))))
