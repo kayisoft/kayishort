@@ -31,6 +31,17 @@ bindings to bind in the query."
    (apply #'dbi:execute
           (append (list (dbi:prepare (database-connection) query)) params))))
 
+(defun exec-db-migration (query-list)
+  "Execute a list of raw SQL queries wrapped in a transaction."
+  (let ((transaction-completed nil))
+    (exec-db-raw-query "BEGIN TRANSACTION")
+    (unwind-protect (loop for query in query-list
+                       do (exec-db-raw-query query)
+                       finally (setf transaction-completed t))
+      (if transaction-completed
+          (exec-db-raw-query "COMMIT")
+          (exec-db-raw-query "ROLLBACK")))))
+
 (defun exec-db-query (lispy-query)
   "Execute an SXQL query. SXQL is a lispy syntax for SQL."
   (multiple-value-bind (query params) (sxql:yield lispy-query)
@@ -69,6 +80,6 @@ the database automatically if it does not already exist."
     (when (< current-database-version wanted-database-version)
       (loop for migration-id
          from (1+ current-database-version) to wanted-database-version
-         do (exec-db-raw-query
+         do (exec-db-migration
              (getf (get-migration-by-id migration-id) :up))
            (set-db-version migration-id)))))
