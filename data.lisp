@@ -26,21 +26,35 @@ are available."
 
 (defun exec-db-raw-query (query &optional params)
   "Execute a raw SQL query. Optionally accepts a list of SQL parameter
-bindings to bind in the query."
+bindings to bind in the query. Automatically handles creating /
+caching of database connections."
+  (with-connection-exec-db-raw-query (database-connection) query params))
+
+(defun with-connection-exec-db-raw-query (connection query &optional params)
+  "Execute a raw SQL query over the specified connection. Optionally
+accepts a list of SQL parameter bindings to bind in the query.
+
+You might want to use `exec-db-raw-query` instead, which automatically
+handles creating / caching of database connections."
   (dbi:fetch-all
    (apply #'dbi:execute
-          (append (list (dbi:prepare (database-connection) query)) params))))
+          (append (list (dbi:prepare connection query)) params))))
 
 (defun exec-db-migration (query-list)
   "Execute a list of raw SQL queries wrapped in a transaction."
   (let ((transaction-completed nil))
-    (exec-db-raw-query "BEGIN TRANSACTION")
-    (unwind-protect (loop for query in query-list
-                       do (exec-db-raw-query query)
-                       finally (setf transaction-completed t))
-      (if transaction-completed
-          (exec-db-raw-query "COMMIT")
-          (exec-db-raw-query "ROLLBACK")))))
+    (dbi:with-connection (connection :sqlite3 :database-name *database-path*)
+      ;; We start a dedicated connection for the migration because
+      ;; SQLite's transactions are connection-based. Otherwise, other
+      ;; async calls to the DB will be included in our transaction if
+      ;; they happen concurrently.
+      (with-connection-exec-db-raw-query connection "BEGIN TRANSACTION")
+      (unwind-protect (loop for query in query-list
+                         do (with-connection-exec-db-raw-query connection query)
+                         finally (setf transaction-completed t))
+        (if transaction-completed
+            (with-connection-exec-db-raw-query connection "COMMIT")
+            (with-connection-exec-db-raw-query connection "ROLLBACK"))))))
 
 (defun exec-db-query (lispy-query)
   "Execute an SXQL query. SXQL is a lispy syntax for SQL."
