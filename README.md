@@ -1,7 +1,7 @@
 # Kayishort
 A simple SQLite-based URL shortner.
 
-Current Maintainer: Mohammad Matini <mohammad.matini@outlook.com>
+Current Maintainer: Mohammad Matini <<mohammad.matini@outlook.com>>
 
 ## Dependencies
 1. Install sqlite3 for your distro
