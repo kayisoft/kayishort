@@ -1,4 +1,4 @@
-;;;; shortner.lisp
+;;;; kayishort.lisp
 
 (in-package #:net.kayisoft.kayishort)
 

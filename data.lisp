@@ -46,8 +46,8 @@ handles creating / caching of database connections."
     (dbi:with-connection (connection :sqlite3 :database-name *database-path*)
       ;; We start a dedicated connection for the migration because
       ;; SQLite's transactions are connection-based. Otherwise, other
-      ;; async calls to the DB will be included in our transaction if
-      ;; they happen concurrently.
+      ;; concurrent calls to the DB will be included in our
+      ;; transaction if they happen concurrently.
       (with-connection-exec-db-raw-query connection "BEGIN TRANSACTION")
       (unwind-protect (loop for query in query-list
                          do (with-connection-exec-db-raw-query connection query)
