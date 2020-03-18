@@ -93,11 +93,6 @@ follow the redirect to that original page.
 
 * Only supports the `SBCL` Common-Lisp implementation at the moment.
 
-* Database migrations are dump. We just run all migrations on start
-  without recording what migrations we ran in the database. For now,
-  that means any new database migrations must be idempotent. `IF NOT
-  EXISTS` is your friend.
-
 ## License
 Copyright (C) 2020 Kayisoft Inc.
 
