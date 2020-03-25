@@ -29,7 +29,7 @@
            visits INTEGER DEFAULT 0,
            created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)"
 
-          "INSERT INTO new_urls SELECT * FROM urls"
+          "INSERT INTO new_urls SELECT id,url,0,created_at FROM urls"
           "DROP TABLE urls"
           "ALTER TABLE new_urls RENAME TO urls")
 
@@ -39,6 +39,6 @@
              visits INTEGER DEFAULT 0,
              created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)"
 
-            "INSERT INTO new_urls SELECT * FROM urls"
+            "INSERT INTO new_urls SELECT id,url,created_at,visits FROM urls"
             "DROP TABLE urls"
             "ALTER TABLE new_urls RENAME TO urls"))))
