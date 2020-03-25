@@ -16,7 +16,7 @@
      :date "2019-10-27T09:09:08Z"
      :description "Add a visit counter column"
      :up ("ALTER TABLE urls ADD visits INTEGER DEFAULT 0")
-     :down ("ALTER TABLE urls DROP COLUMN visit_count"))
+     :down ("ALTER TABLE urls DROP COLUMN visits"))
 
     (:id 3
      :date "2019-12-09T16:58:40Z"
