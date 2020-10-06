@@ -50,17 +50,32 @@ docker run -p "8000:80" \
 
 ## Environmental Variables
 
-### `KAYISHORT_API_TOKEN`
-    API access token. Clients that want to create new short urls must
-    send the same token in their `Authorization` header.
-
-### `KAYISHORT_SERVER_PORT`
-    Server listening port. `80` by default.
-    
-### `KAYISHORT_DATABASE_PATH`
-    The path to the sqlite3 database file. The database file is
-    automatically created if it does not exist, and migrations
-    automatically run, on server startup.
+<table>
+  <thead>
+    <tr>
+      <th scope="col">VARIABLE</th>
+      <th scope="col">DESCRIPTION</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>KAYICORRECT_API_TOKEN</code></td>
+      <td> API access token. Clients that want to create new short urls must
+        send the same token in their <code>Authorization</code>
+        header. </td>
+    </tr>
+    <tr>
+      <td><code>KAYICORRECT_SERVER_PORT</code></td>
+      <td> Server listening port. <code>80</code> by default. </td>
+    </tr>
+    <tr>
+      <td><code>KAYISHORT_DATABASE_PATH</code></td>
+      <td> The path to the sqlite3 database file. The database file is
+        automatically created if it does not exist, and migrations are
+        automatically run on server startup. </td>
+    </tr>
+  </tbody>
+</table>
     
 ## API
 
