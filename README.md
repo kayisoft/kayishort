@@ -79,25 +79,40 @@ docker run -p "8000:80" \
     
 ## API
 
-### `POST` `/urls` `create-short-url`
-To create a new short URL. The API communicates using the
-`Content-Type: application/json`. 
+### Create Short URL
 
-This API endpoint requires Authorization. To authorize, you must set
-the `Authorization` header to `Bearer {{KAYISHORT_API_TOKEN}}`.
+`POST` `/urls`
 
-The URL you want to shorten should be sent in the POST body as a
-string value of the property `originalUrl`. For example:
-`{"originalUrl": "http://google.com"}` Notice that the URL must be
-valid, and have `http://` or `https://` at the beginning.
+Create a new short URL. The original long URL is specified as a string value
+of the property `originalUrl` within a JSON POST body payload. The URL must
+be valid, and must begin with `http://` or `https://`. An example of the
+POST request body might be:
 
-The response will contain the generated short URL as a string value of
-the property `shortUrl`. For example:
-`{"shortUrl":"localhost:8000\/urls\/aTlrBBaUrCKQ"}`
+```json
+{ "originalUrl": "http://my-long-url.com" }
+```
 
-Then you can visit the resulting short URL in a browser.
+The response returned by the server will contain the generated short URL as
+the string value of the property `shortUrl` within a JSON response body. An
+example of the response body might be:
 
-### `GET` `/urls/:id` `get-short-url`
+```json
+{ "shortUrl": "localhost:8000\/urls\/aTlrBBaUrCKQ" }
+```
+
+You can then visit the resulting short URL in a web browser, and you will be
+redirected to the long URL.
+
+Notes:
+
+- The API endpoint communicates in `Content-Type: application/json` only.
+- This API endpoint requires Authorization. To authorize, you must set
+  the `Authorization` header to `Bearer {{KAYICORRECT_API_TOKEN}}`.
+
+### Visit Short URL
+
+`GET` `/urls/:id`
+
 When a short url is requested, the server will respond with a `301`
 redirect to the actual original URL. Web browsers would automatically
 follow the redirect to that original page.
