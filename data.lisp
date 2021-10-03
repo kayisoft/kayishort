@@ -1,35 +1,71 @@
-;;;; data.lisp
+;;;; data.lisp --- data layer, and database helpers
+
+;;; Copyright (C) 2020 Kayisoft, Inc.
+
+;;; Author: Mohammad Matini <mohammad.matini@outlook.com>
+;;; Maintainer: Mohammad Matini <mohammad.matini@outlook.com>
+
+;;; Description: This file defines the API to interact with the SQLite
+;;; database used by Kayishort. Additionally, it containers some wrapper and
+;;; helper functions to make interacting with SQLite easier, like connection
+;;; and migration management.
+
+;;; This file is part of Kayishort.
+
+;;; Kayishort is free software: you can redistribute it and/or modify
+;;; it under the terms of the GNU General Public License as published by
+;;; the Free Software Foundation, either version 3 of the License, or
+;;; (at your option) any later version.
+
+;;; Kayishort is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU General Public License for more details.
+
+;;; You should have received a copy of the GNU General Public License
+;;; along with Kayishort. If not, see <https://www.gnu.org/licenses/>.
 
 (in-package #:net.kayisoft.kayishort)
 
+;;; --------------------------------------------------------------------------
+;;;                             Public Data API
+;;; --------------------------------------------------------------------------
+;;; --------------------------------------------------------------------------
 (defun get-all-url-records ()
   (exec-db-query (sxql:select :* (sxql:from :urls))))
 
+;;; --------------------------------------------------------------------------
 (defun insert-url (id url)
   (exec-db-query (sxql:insert-into :urls (sxql:set= :id id :url url))))
 
+;;; --------------------------------------------------------------------------
 (defun get-url-record-by-id (id)
   (car (exec-db-query (sxql:select (:id :url) (sxql:from :urls)
                                    (sxql:where (:= :id id))))))
 
+;;; --------------------------------------------------------------------------
 (defun increment-url-visit-count (id)
   (exec-db-query (sxql:update :urls
                    (sxql:set= :visits (:+ :visits 1))
                    (sxql:where (:= :id id)))))
 
-;;; data utils:
-
+;;; --------------------------------------------------------------------------
+;;;                             Data Helpers
+;;; --------------------------------------------------------------------------
+;;; --------------------------------------------------------------------------
 (defun database-connection ()
   "Returns a database connection. It uses cached connections if they
 are available."
   (dbi:connect-cached :sqlite3 :database-name *database-path*))
 
+;;; --------------------------------------------------------------------------
 (defun exec-db-raw-query (query &optional params)
   "Execute a raw SQL query. Optionally accepts a list of SQL parameter
 bindings to bind in the query. Automatically handles creating /
 caching of database connections."
   (with-connection-exec-db-raw-query (database-connection) query params))
 
+;;; --------------------------------------------------------------------------
 (defun with-connection-exec-db-raw-query (connection query &optional params)
   "Execute a raw SQL query over the specified connection. Optionally
 accepts a list of SQL parameter bindings to bind in the query.
@@ -40,6 +76,7 @@ handles creating / caching of database connections."
    (apply #'dbi:execute
           (append (list (dbi:prepare connection query)) params))))
 
+;;; --------------------------------------------------------------------------
 (defun exec-db-migration (query-list)
   "Execute a list of raw SQL queries wrapped in a transaction."
   (let ((transaction-completed nil))
@@ -56,21 +93,25 @@ handles creating / caching of database connections."
             (with-connection-exec-db-raw-query connection "COMMIT")
             (with-connection-exec-db-raw-query connection "ROLLBACK"))))))
 
+;;; --------------------------------------------------------------------------
 (defun exec-db-query (lispy-query)
   "Execute an SXQL query. SXQL is a lispy syntax for SQL."
   (multiple-value-bind (query params) (sxql:yield lispy-query)
     (exec-db-raw-query query params)))
 
+;;; --------------------------------------------------------------------------
 (defun get-db-version ()
   "Gets the current migration version, which is stored in the PRAGMA
 `user_version`."
   (cadar (exec-db-query (sxql:pragma "user_version"))))
 
+;;; --------------------------------------------------------------------------
 (defun set-db-version (version)
   "Sets the PRAGMA `user_version` in the SQLite3 database. This is
 used to track the current applied migration version."
   (exec-db-query (sxql:pragma "user_version" version)))
 
+;;; --------------------------------------------------------------------------
 (defun get-migration-by-id (id)
   "Get a migration definition by its ID from the global migration
 definitions list."
@@ -78,12 +119,14 @@ definitions list."
            *database-migrations*
            :key (lambda (migration) (getf migration :id))))
 
+;;; --------------------------------------------------------------------------
 (defun get-wanted-migration-version ()
   "Find the maximum migration ID in the global migration
 definitions. Migration IDs are sequential numbers."
   (apply #'max (mapcar (lambda (migration) (getf migration :id))
                        *database-migrations*)))
 
+;;; --------------------------------------------------------------------------
 (defun database-migrate-latest ()
   "Migrate the database to the latest migration version. It only
 executes migrations that were not executed before. Also, it creates

@@ -1,5 +1,6 @@
 # Kayishort
-A simple SQLite-based URL shortner.
+A simple SQLite-based URL shortner; POST to shorten URLS, GET to visit them.
+Automatically keeps track of visitor count for each shortened URL.
 
 Current Maintainer: Mohammad Matini <<mohammad.matini@outlook.com>>
 
