@@ -74,7 +74,7 @@ You might want to use `exec-db-raw-query` instead, which automatically
 handles creating / caching of database connections."
   (dbi:fetch-all
    (apply #'dbi:execute
-          (append (list (dbi:prepare connection query)) params))))
+          (append (list (dbi:prepare connection query)) (list params)))))
 
 ;;; --------------------------------------------------------------------------
 (defun exec-db-migration (query-list)

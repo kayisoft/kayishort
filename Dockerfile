@@ -40,7 +40,7 @@ RUN apt-get update &&\
 # ----------------------------------------------------------------------------
 
 RUN sbcl --noinform --non-interactive --load "/usr/share/common-lisp/source/quicklisp/quicklisp.lisp" \
-        --eval "(quicklisp-quickstart:install :dist-url \"http://beta.quicklisp.org/dist/quicklisp/2019-10-08/distinfo.txt\")" \
+        --eval "(quicklisp-quickstart:install :dist-url \"http://beta.quicklisp.org/dist/quicklisp/2021-06-30/distinfo.txt\")" \
         --eval '(ql-util:without-prompting (ql:add-to-init-file))'
 
 # ----------------------------------------------------------------------------
