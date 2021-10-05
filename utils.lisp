@@ -25,6 +25,7 @@
 
 (in-package #:net.kayisoft.kayishort)
 
+;;; --------------------------------------------------------------------------
 (defvar *url-id-characters*
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
   "Sequence of characters to draw from when generating unique path IDs.
@@ -32,6 +33,7 @@
 We kept off characters that require URL encoding. This pool is large
 enough for our purposes.")
 
+;;; --------------------------------------------------------------------------
 (defvar *url-validation-regex*
   (concatenate
    'string
@@ -70,10 +72,12 @@ codes. For more information about this regex take a look at:
 * List of regexes, and validation lists
   https://mathiasbynens.be/demo/url-regex")
 
+;;; --------------------------------------------------------------------------
 (defun valid-url-p (url)
   "Validate a URL string."
   (cl-ppcre:scan *url-validation-regex* url))
 
+;;; --------------------------------------------------------------------------
 (defun generate-random-url-id (length)
   "Returns a random string that doesn't require URL encoding."
   (loop with id = (make-string length) for i below length
