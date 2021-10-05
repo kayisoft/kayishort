@@ -22,7 +22,7 @@
 
 (asdf:defsystem kayishort
   :name "Kayishort"
-  :version "0.0.1"
+  :version "1.0.0"
   :author "Mohammad Matini <mohammad.matini@outlook.com>"
   :license  "GPLv3"
   :description "A simple SQLite-based URL shortner."
