@@ -24,58 +24,10 @@
 
 (in-package #:net.kayisoft.kayishort)
 
-(defvar *server* nil)
-
-(defparameter *apis*
-  '((:method :GET :path "^/urls/(.{12})$" :handler get-urls-handler)
-    (:method :POST :path "^/urls/?$" :handler post-urls-handler)))
-
-(defun main ()
-  (refresh-config-from-current-env)
-  (start-server)
-  #+(or sbcl ccl clisp ecl allegro)
-  (handler-case (join-server-thread)
-    ;; Catch a user's C-c
-    (#+sbcl sb-sys:interactive-interrupt
-      #+ccl  ccl:interrupt-signal-condition
-      #+clisp system::simple-interrupt-condition
-      #+ecl ext:interactive-interrupt
-      #+allegro excl:interrupt-signal
-      ()
-      (progn (format *error-output* "~%Aborting.~&")
-             (stop-server) (uiop:quit)))
-    (error (c) (format t "Unknown error occured:~&~a~&" c)))
-  #-(or sbcl ccl clisp ecl allegro) (join-server-thread))
-
-(defun join-server-thread ()
-  (bt:join-thread
-   (find-if (lambda (thread)
-              (search "hunchentoot" (bt:thread-name thread)))
-            (bt:all-threads))))
-
-(defun start-server ()
-  (database-migrate-latest)
-  (setf *server* (clack:clackup (lambda (env) (funcall #'dispatcher env))
-                                :address "0.0.0.0"
-                                :port *server-port*)))
-
-(defun stop-server () (clack:stop *server*) (setf *server* nil))
-
-(defun dispatcher (environment)
-  (handler-case
-      (let* ((api (find-matching-api environment))
-             (response (when api (funcall (getf api :handler) environment))))
-        (if response response `(404 nil ("Not Found"))))
-    (error (c) (print c) `(500 nil ("Internal Server Error")))))
-
-(defun find-matching-api (environment)
-  (find-if (lambda (handler)
-             (and (equal (getf handler :method)
-                         (getf environment :request-method))
-                  (cl-ppcre:scan (getf handler :path)
-                                 (getf environment :path-info))))
-           *apis*))
-
+;;; --------------------------------------------------------------------------
+;;;                               Handler Definitions
+;;; --------------------------------------------------------------------------
+;;; --------------------------------------------------------------------------
 (defun get-urls-handler (environment)
   (let* ((id (car (last (cl-ppcre:split "/urls/" (getf environment :path-info)))))
          (redirect-url (get-url-by-id id)))
@@ -83,6 +35,7 @@
       (increment-url-visit-count id)
       `(301 (:location ,redirect-url) ("")))))
 
+;;; --------------------------------------------------------------------------
 (defun post-urls-handler (environment)
   (destructuring-bind (&key headers content-type content-length
                             raw-body &allow-other-keys)
@@ -103,6 +56,10 @@
                                 'string (gethash "host" headers) "/urls/"
                                 (register-short-url original-url))))))))))
 
+;;; --------------------------------------------------------------------------
+;;;                               Helpers
+;;; --------------------------------------------------------------------------
+;;; --------------------------------------------------------------------------
 (defun register-short-url (url)
   (let ((generated-unique-id
          (loop for id = (generate-random-url-id 12)
@@ -110,8 +67,12 @@
     (insert-url generated-unique-id url)
     generated-unique-id))
 
+;;; --------------------------------------------------------------------------
 (defun get-url-by-id (id) (getf (get-url-record-by-id id) :|url|))
 
-(defun authorized-p (headers)
-  (string= (gethash "authorization" headers)
-           (concatenate 'string "Bearer " *api-access-token*)))
+;;; --------------------------------------------------------------------------
+;;;                               API Definitions
+;;; --------------------------------------------------------------------------
+;;; --------------------------------------------------------------------------
+(defapi :GET  "^/urls/(.{12})$" #'get-urls-handler)
+(defapi :POST "^/urls/?$"       #'post-urls-handler)

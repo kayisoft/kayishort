@@ -82,3 +82,9 @@ codes. For more information about this regex take a look at:
                     (crypto:strong-random
                      (length *url-id-characters*))))
      finally (return id)))
+
+;;; --------------------------------------------------------------------------
+(defun authorized-p (headers)
+  "Whether or not a request's authorized based on its auth headers."
+  (string= (gethash "authorization" headers)
+           (concatenate 'string "Bearer " *api-access-token*)))

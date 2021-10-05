@@ -33,6 +33,7 @@
                :sxql                    ;sql query generator
                :ironclad                ;crypto lib for secure rng
                :clack                   ;web server framework
+               :trivial-backtrace       ;portable condition backtraces
                :cl-ppcre                ;regex library
                :http-body               ;http body parser
                :cl-json                 ;json library
@@ -43,7 +44,8 @@
                (:file "utils")          ;various helper utils
                (:file "migrations")     ;database migrations
                (:file "data")           ;database access
-               (:file "kayishort")      ;main application logic
+               (:file "server")         ;various server utilities
+               (:file "kayishort")      ;main API definitions
                )
   :build-operation "program-op"
   :build-pathname "./dist/kayishort"
