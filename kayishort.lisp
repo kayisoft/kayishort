@@ -42,6 +42,9 @@
       environment
     (unless (authorized-p headers)
       (return-from post-urls-handler '(401 nil ("Unauthorized"))))
+    (unless (string= content-type "application/json")
+      (return-from post-urls-handler
+        '(415 nil ("Bad Content-Type, only `application/json' is accepted"))))
     (let* ((body (handler-case
                      (http-body:parse content-type content-length raw-body)
                    (error () (return-from post-urls-handler
